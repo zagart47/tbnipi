@@ -1,13 +1,6 @@
-import sys
 import numpy as np
-import h5py
-from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QTableView, QStyledItemDelegate, \
-    QComboBox, QPushButton, QInputDialog, QFileDialog
-import pyqtgraph as pg
-from scipy.stats import linregress
 
 
 # Класс для создания пользовательской модели таблицы.

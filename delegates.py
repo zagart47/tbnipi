@@ -1,13 +1,5 @@
-import sys
-import numpy as np
-import h5py
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QTableView, QStyledItemDelegate, \
-    QComboBox, QPushButton, QInputDialog, QFileDialog
-import pyqtgraph as pg
-from scipy.stats import linregress
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QStyledItemDelegate, QComboBox
 
 
 # Класс для создания делегата с выпадающим списком.
@@ -39,4 +31,3 @@ class ComboBoxDelegate(QStyledItemDelegate):
     # Обновляет геометрию редактора, чтобы ComboBox корректно отображался в ячейке таблицы
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
-
