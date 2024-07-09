@@ -75,14 +75,16 @@ class MainWindow(QMainWindow):
         selected_columns = list(
             index.column() for index in self.table_view.selectedIndexes())
         selected_columns = self.remove_duplicates(selected_columns)
+
         self.plot_widget.clear()
+
         if len(selected_columns) == 2:
             x_col = selected_columns[0]
             y_col = selected_columns[1]
             x = self.data[:, x_col]
             y = self.data[:, y_col]
-            self.plot_widget.clear()
 
+            self.plot_widget.clear()
             self.plot_widget.plot(x, y, pen='b', symbol='d')  # Рисует график
 
             slope, intercept, r_value, p_value, std_err = linregress(x, y)  # scipy вычисляет линейную регрессию
@@ -93,6 +95,7 @@ class MainWindow(QMainWindow):
 
             x_label = self.model.headerData(x_col, Qt.Horizontal, Qt.DisplayRole)
             y_label = self.model.headerData(y_col, Qt.Horizontal, Qt.DisplayRole)
+
             self.plot_widget.setLabel('bottom', x_label)  # Добавляем подписи осей
             self.plot_widget.setLabel('left', y_label)  # Добавляем подписи осей
 
@@ -111,6 +114,7 @@ class MainWindow(QMainWindow):
         rows, ok = QInputDialog.getInt(self, "Изменить размер таблицы", "Число строк:", self.data.shape[0], 1, 100)
         if ok:
             self.table_view.clearSelection()
+
             new_data = np.zeros((rows, 4), dtype=int)
             new_data[:min(self.data.shape[0], rows), :] = self.data[:min(self.data.shape[0], rows), :]
 
@@ -158,7 +162,6 @@ class MainWindow(QMainWindow):
 
                 self.data = new_data
                 self.model.update_data(self.data)
-
                 self.data[:, 1] = np.cumsum(self.data[:, 0])
                 self.data[:, 2] = self.data[:, 0] + self.data[:, 1] + 3
                 self.model.update_data(self.data)
