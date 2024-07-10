@@ -190,17 +190,21 @@ class MainWindow(QMainWindow):
             self.file_name = file_name
             self.open_file('a')
             try:
-                columns = self.f['columns'][:]
+                column_1 = self.f['column_1'][:]
+                column_4 = self.f['column_4'][:]
 
-                new_data = np.zeros((len(columns), 4), dtype=int)
-                new_data[:, 0] = columns[:, 0]
-                new_data[:, 3] = columns[:, 1]
+                new_data = np.zeros((len(column_1), 4), dtype=int)
+                new_data[:, 0] = column_1[:]
+                new_data[:, 3] = column_4[:]
 
                 self.data = new_data
-                self.model.update_data(self.data)
-                self.data[:, 1] = np.cumsum(self.data[:, 0])
-                self.data[:, 2] = self.data[:, 0] + self.data[:, 1] + 3
-                self.model.update_data(self.data)
-                self.update_table(self.model.index(0, 0))
+                self.fill_data()
             finally:
                 self.close_file()
+
+    def fill_data(self):
+        self.model.update_data(self.data)
+        self.data[:, 1] = np.cumsum(self.data[:, 0])
+        self.data[:, 2] = self.data[:, 0] + self.data[:, 1] + 3
+        self.model.update_data(self.data)
+        self.update_table(self.model.index(0, 0))
