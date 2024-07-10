@@ -63,15 +63,15 @@ class MainWindow(QMainWindow):
         self.update_table(self.model.index(0, 0))
 
     def update_table(self, top_left):
-        # Обновляет 2 и 3 столбцы в таблице и сигнализирует об этом
+        """Обновляет 2 и 3 столбцы в таблице и сигнализирует об этом"""
         if top_left.column() == 0:
             self.data[:, 1] = np.cumsum(self.data[:, 0])
             self.data[:, 2] = self.data[:, 0] + self.data[:, 1] + 3
-            self.model.dataChanged.emit(self.model.index(0, 1), self.model.index(self.data.shape[0] - 1, 2),
+            self.model.dataChanged.emit(self.model.index(0, 1), self.model.index(self.row_count() - 1, 2),
                                         [Qt.DisplayRole])
 
     def update_plot(self):
-        # Формирует график
+        """Формирует график"""
         selected_columns = list(
             index.column() for index in self.table_view.selectedIndexes())
         selected_columns = self.remove_duplicates(selected_columns)
@@ -100,7 +100,7 @@ class MainWindow(QMainWindow):
             self.plot_widget.setLabel('left', y_label)  # Добавляем подписи осей
 
     def remove_duplicates(self, nested_list):
-        # Удаляет дубликаты индексов выделенных столбцов. Как по-другому сделать пока не понял
+        """Удаляет дубликаты индексов выделенных столбцов. Как по-другому сделать пока не понял"""
         unique_list = []
         seen = set()
         for element in nested_list:
@@ -110,16 +110,16 @@ class MainWindow(QMainWindow):
         return unique_list
 
     def resize_table(self):
-        # Меняет размер таблицы
-        rows, ok = QInputDialog.getInt(self, "Изменить размер таблицы", "Число строк:", self.data.shape[0], 1, 100)
+        """Меняет размер таблицы"""
+        rows, ok = QInputDialog.getInt(self, "Изменить размер таблицы", "Число строк:", self.row_count(), 1, 100)
         if ok:
             self.table_view.clearSelection()
 
             new_data = np.zeros((rows, 4), dtype=int)
-            new_data[:min(self.data.shape[0], rows), :] = self.data[:min(self.data.shape[0], rows), :]
+            new_data[:min(self.row_count(), rows), :] = self.data[:min(self.row_count(), rows), :]
 
-            if rows > self.data.shape[0]:
-                new_rows = rows - self.data.shape[0]
+            if rows > self.row_count():
+                new_rows = rows - self.row_count()
                 new_data[-new_rows:, 0] = np.random.randint(-5, 11, size=new_rows)
                 new_data[-new_rows:, 3] = np.random.randint(-5, 11, size=new_rows)
 
@@ -127,38 +127,39 @@ class MainWindow(QMainWindow):
             self.model.update_data(self.data)
             self.update_table(self.model.index(0, 0))
 
+    def row_count(self):
+        return self.data.shape[0]
+
     def randomize_values(self):
-        # Заполняет ячейки столбцо 1 и 4 случайными значениями от [-5 до 10]
+        """Заполняет ячейки столбцо 1 и 4 случайными значениями от [-5 до 10]"""
         self.table_view.clearSelection()
-        self.data[:, 0] = np.random.randint(-5, 11, size=self.data.shape[0])
-        self.data[:, 3] = np.random.randint(-5, 11, size=self.data.shape[0])
+        self.data[:, 0] = np.random.randint(-5, 11, size=self.row_count())
+        self.data[:, 3] = np.random.randint(-5, 11, size=self.row_count())
         self.update_table(self.model.index(0, 0))
-        self.model.dataChanged.emit(self.model.index(0, 0), self.model.index(self.data.shape[0] - 1, 3),
+        self.model.dataChanged.emit(self.model.index(0, 0), self.model.index(self.row_count() - 1, 3),
                                     [Qt.DisplayRole])
 
     def save_data(self):
-        # Сохраняет данные таблицы в hdf файл
+        """Сохраняет данные таблицы в hdf файл"""
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить данные", "", "HDF5 Files (*.h5);;All Files (*)",
                                                    options=options)
         if file_name:
             with h5py.File(file_name, 'w') as f:
-                f.create_dataset('column_1', data=self.data[:, 0])
-                f.create_dataset('column_4', data=self.data[:, 3])
+                f.create_dataset('columns', (10, 2), maxshape=(None, 2), data=self.data[:, (0, 3)])
 
     def load_data(self):
-        # Загружает данные из hdf файла, подгоняет размер таблицы в модели и заменяет данные в таблице
+        """Загружает данные из hdf файла, подгоняет размер таблицы в модели и заменяет данные в таблице"""
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(self, "Загрузить данные", "", "HDF5 Files (*.h5);;All Files (*)",
                                                    options=options)
         if file_name:
             with h5py.File(file_name, 'r') as f:
-                column_1 = f['column_1'][:]
-                column_4 = f['column_4'][:]
+                columns = f['columns'][:]
 
-                new_data = np.zeros((len(column_1), 4), dtype=int)
-                new_data[:, 0] = column_1
-                new_data[:, 3] = column_4
+                new_data = np.zeros((len(columns), 4), dtype=int)
+                new_data[:, 0] = columns[:, 0]
+                new_data[:, 3] = columns[:, 1]
 
                 self.data = new_data
                 self.model.update_data(self.data)
