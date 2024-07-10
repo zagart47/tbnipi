@@ -146,7 +146,7 @@ class MainWindow(QMainWindow):
                                                    options=options)
         if file_name:
             with h5py.File(file_name, 'w') as f:
-                f.create_dataset('columns', (10, 2), maxshape=(None, 2), data=self.data[:, (0, 3)])
+                f.create_dataset('columns', (self.row_count(), 2), maxshape=(None, 2), data=self.data[:, (0, 3)])
 
     def load_data(self):
         """Загружает данные из hdf файла, подгоняет размер таблицы в модели и заменяет данные в таблице"""
