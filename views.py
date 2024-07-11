@@ -100,7 +100,9 @@ class MainWindow(QMainWindow):
             self.plot_widget.setLabel('left', y_label)  # Добавляем подписи осей
 
     def remove_duplicates(self, nested_list):
-        """Удаляет дубликаты индексов выделенных столбцов. Как по-другому сделать пока не понял"""
+        """
+        Удаляет дубликаты индексов выделенных столбцов. Как по-другому сделать пока не понял
+        """
         unique_list = []
         seen = set()
         for element in nested_list:
@@ -110,7 +112,9 @@ class MainWindow(QMainWindow):
         return unique_list
 
     def resize_table(self):
-        """Меняет размер таблицы"""
+        """
+        Меняет размер таблицы
+        """
         rows, ok = QInputDialog.getInt(self, "Изменить размер таблицы", "Число строк:", self.row_count(), 1, 100)
         if ok:
             self.table_view.clearSelection()
@@ -131,7 +135,9 @@ class MainWindow(QMainWindow):
         return self.data.shape[0]
 
     def randomize_values(self):
-        """Заполняет ячейки столбцо 1 и 4 случайными значениями от [-5 до 10]"""
+        """
+        Заполняет ячейки столбцо 1 и 4 случайными значениями от [-5 до 10]
+        """
         self.table_view.clearSelection()
         self.data[:, 0] = np.random.randint(-5, 11, size=self.row_count())
         self.data[:, 3] = np.random.randint(-5, 11, size=self.row_count())
@@ -140,16 +146,21 @@ class MainWindow(QMainWindow):
                                     [Qt.DisplayRole])
 
     def save_data(self):
-        """Сохраняет данные таблицы в hdf файл"""
+        """
+        Сохраняет данные таблицы в hdf файл
+        """
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить данные", "", "HDF5 Files (*.h5);;All Files (*)",
                                                    options=options)
         if file_name:
             with h5py.File(file_name, 'w') as f:
-                f.create_dataset('columns', (self.row_count(), 2), maxshape=(None, 2), data=self.data[:, (0, 3)])
+                f.create_dataset('columns', (self.row_count(), 2), maxshape=(None, 2),
+                                 data=self.data[:, (0, 3)])
 
     def load_data(self):
-        """Загружает данные из hdf файла, подгоняет размер таблицы в модели и заменяет данные в таблице"""
+        """
+        Загружает данные из hdf файла, подгоняет размер таблицы в модели и заменяет данные в таблице
+        """
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(self, "Загрузить данные", "", "HDF5 Files (*.h5);;All Files (*)",
                                                    options=options)
