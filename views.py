@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
             y = self.data[:, y_col]
 
             self.plot_widget.clear()
-            self.plot_widget.plot(x, y, pen='b', symbol='d')  # Рисует график
+            self.plot_widget.plot(x, y, pen=None, symbol='o')  # Рисует график
 
             slope, intercept, r_value, p_value, std_err = linregress(x, y)  # scipy вычисляет линейную регрессию
             fit_x = np.array([min(x), max(x)])
@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
 
     def resize_table(self):
         """
-        Меняет размер таблицы
+        Меняет размер таблицы и заполняет рандомными и расчетными значениями новые ячейки
         """
         rows, ok = QInputDialog.getInt(self, "Изменить размер таблицы", "Число строк:", self.row_count(), 1, 100)
         if ok:
@@ -136,7 +136,7 @@ class MainWindow(QMainWindow):
 
     def randomize_values(self):
         """
-        Заполняет ячейки столбцо 1 и 4 случайными значениями от [-5 до 10]
+        Рандомизирует значения во всех ячейках столбцов 1 и 4 случайными значениями от [-5 до 10]
         """
         self.table_view.clearSelection()
         self.data[:, 0] = np.random.randint(-5, 11, size=self.row_count())
