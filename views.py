@@ -14,15 +14,15 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.dataset = None
+        self.f = None
+        self.columns = None
         self.file_name = None
         self.file_saved = False
-        self.f = None
         self.setWindowTitle("Программа")
         self.setGeometry(0, 0, 1910, 1000)
 
-        self.data = np.zeros((10, 4), dtype=int)
-        self.data[:, 0] = np.random.randint(-5, 11, size=10)
-        self.data[:, 3] = np.random.randint(-5, 11, size=10)
+        self.data = np.zeros((0, 4), dtype=int)
 
         main_widget = QtWidgets.QWidget()
         self.setCentralWidget(main_widget)
@@ -68,24 +68,30 @@ class MainWindow(QMainWindow):
     def open_file(self, mode):
         if self.file_name:
             self.f = h5py.File(self.file_name, mode)
+            self.dataset = self.f['columns']
+            self.columns = self.f['columns'][:]
         else:
             raise ValueError("File name is not set")
 
     def close_file(self):
-        if self.f:
+        if isinstance(self.f, h5py.File):
             self.f.close()
-            self.f = None
 
     def update_table(self, top_left):
-        # Обновляет 2 и 3 столбцы в таблице и сигнализирует об этом
+        """
+        Обновляет 2 и 3 столбцы в таблице и сигнализирует об этом
+        """
         if top_left.column() == 0:
             self.data[:, 1] = np.cumsum(self.data[:, 0])
             self.data[:, 2] = self.data[:, 0] + self.data[:, 1] + 3
-            self.model.dataChanged.emit(self.model.index(0, 1), self.model.index(self.row_count() - 1, 2),
+            self.model.dataChanged.emit(self.model.index(0, 1),
+                                        self.model.index(self.row_count() - 1, 2),
                                         [Qt.DisplayRole])
 
     def update_plot(self):
-        # Формирует график
+        """
+        Формирует график
+        """
         selected_columns = list(
             index.column() for index in self.table_view.selectedIndexes())
         selected_columns = self.remove_duplicates(selected_columns)
@@ -114,7 +120,9 @@ class MainWindow(QMainWindow):
             self.plot_widget.setLabel('left', y_label)  # Добавляем подписи осей
 
     def remove_duplicates(self, nested_list):
-        # Удаляет дубликаты индексов выделенных столбцов. Как по-другому сделать пока не понял
+        """
+        Удаляет дубликаты индексов выделенных столбцов. Как по-другому сделать пока не понял
+        """
         unique_list = []
         seen = set()
         for element in nested_list:
@@ -144,63 +152,48 @@ class MainWindow(QMainWindow):
             self.model.update_data(self.data)
             self.update_table(self.model.index(0, 0))
 
+            # Изменение размера массива self.columns
+            if self.columns is not None:
+                self.dataset.resize((rows, 2))
+                self.dataset[:] = self.data[:, (0, 3)]
+
     def randomize_values(self):
-        # Заполняет ячейки столбцо 1 и 4 случайными значениями от [-5 до 10]
+        """
+        Заполняет ячейки столбцов 1 и 4 случайными значениями от [-5 до 10]
+        """
         self.table_view.clearSelection()
-        self.data[:, 0] = np.random.randint(-5, 11, size=self.row_count())
-        self.data[:, 3] = np.random.randint(-5, 11, size=self.row_count())
+        new_data = np.zeros((self.row_count(), 2), dtype=int)
+        new_data[:, 0] = np.random.randint(-5, 11, size=self.row_count())
+        new_data[:, 1] = np.random.randint(-5, 11, size=self.row_count())
+        self.data[:, (0, 3)] = new_data[:, (0, 1)]
+        self.dataset[:] = new_data[:, (0, 1)]
         self.update_table(self.model.index(0, 0))
-        self.model.dataChanged.emit(self.model.index(0, 0), self.model.index(self.row_count() - 1, 3),
-                                    [Qt.DisplayRole])
+        self.model.dataChanged.emit(self.model.index(0, 0),
+                                    self.model.index(self.row_count() - 1, 3), [Qt.DisplayRole])
 
     def save_data(self):
-        if self.file_saved:
-            # Сохраняет данные таблицы в hdf файл
-            if self.file_name:
-                self.open_file('a')
-                try:
-                    self.f.create_dataset('column_1', data=self.data[:, 0])
-                    self.f.create_dataset('column_4', data=self.data[:, 3])
-                finally:
-                    self.close_file()
-        else:
-            self.save_as_data()
-
-    def save_as_data(self):
-        # Сохраняет данные таблицы в hdf файл
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить данные", "", "HDF5 Files (*.h5);;All Files (*)",
-                                                   options=options)
-        if file_name:
-            self.file_name = file_name
-            self.open_file('a')
-            try:
-                self.f.create_dataset('column_1', data=self.data[:, 0])
-                self.f.create_dataset('column_4', data=self.data[:, 3])
-            finally:
-                self.close_file()
-            self.file_saved = True
+        """
+        Сохраняет данные таблицы в hdf файл
+        """
+        if self.f is not None:
+            self.f.flush()
 
     def load_data(self):
-        # Загружает данные из hdf файла, подгоняет размер таблицы в модели и заменяет данные в таблице
+        """
+        Загружает данные из hdf файла, подгоняет размер таблицы в модели и заменяет данные в таблице
+        """
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(self, "Загрузить данные", "", "HDF5 Files (*.h5);;All Files (*)",
                                                    options=options)
         if file_name:
+            self.close_file()
             self.file_name = file_name
             self.open_file('a')
-            try:
-                column_1 = self.f['column_1'][:]
-                column_4 = self.f['column_4'][:]
-
-                new_data = np.zeros((len(column_1), 4), dtype=int)
-                new_data[:, 0] = column_1[:]
-                new_data[:, 3] = column_4[:]
-
-                self.data = new_data
-                self.fill_data()
-            finally:
-                self.close_file()
+            new_data = np.zeros((len(self.columns), 4), dtype=int)
+            new_data[:, 0] = self.columns[:, 0]
+            new_data[:, 3] = self.columns[:, 1]
+            self.data = new_data
+            self.fill_data()
 
     def fill_data(self):
         self.model.update_data(self.data)
