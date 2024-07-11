@@ -62,6 +62,10 @@ class MainWindow(QMainWindow):
         self.update_table(self.model.index(0, 0))
 
     def open_file(self, mode):
+        """
+        Метод для открытия файлов.
+        :param mode:
+        """
         if self.file_name:
             self.f = h5py.File(self.file_name, mode)
             self.dataset = self.f['columns']
@@ -70,12 +74,16 @@ class MainWindow(QMainWindow):
             raise ValueError("File name is not set")
 
     def close_file(self):
+        """
+        Закрывает открытый файл перед открытием другого
+        """
         if isinstance(self.f, h5py.File):
             self.f.close()
 
     def update_table(self, top_left):
         """
-        Обновляет 2 и 3 столбцы в таблице и сигнализирует об этом
+        Обновляет 2 и 3 столбцы в таблице и сигнализирует об этом.
+        :param top_left
         """
         if top_left.column() == 0:
             self.data[:, 1] = np.cumsum(self.data[:, 0])
@@ -86,7 +94,7 @@ class MainWindow(QMainWindow):
 
     def update_plot(self):
         """
-        Формирует график
+        Формирует графики и вставляет в форму
         """
         selected_columns = list(
             index.column() for index in self.table_view.selectedIndexes())
@@ -117,7 +125,8 @@ class MainWindow(QMainWindow):
 
     def remove_duplicates(self, nested_list):
         """
-        Удаляет дубликаты индексов выделенных столбцов. Как по-другому сделать пока не понял
+        Удаляет дубликаты индексов выделенных столбцов. Как по-другому сделать пока не понял.
+        :param nested_list
         """
         unique_list = []
         seen = set()
@@ -128,10 +137,16 @@ class MainWindow(QMainWindow):
         return unique_list
 
     def row_count(self):
+        """
+        Возвращает число строк текущего размера главной таблицы
+        :return:
+        """
         return self.data.shape[0]
 
     def resize_table(self):
-        # Меняет размер таблицы
+        """
+        Меняет размер таблицы и заполняет новые ячейки рандомными и расчетными значениями.
+        """
         rows, ok = QInputDialog.getInt(self, "Изменить размер таблицы", "Число строк:", self.row_count(), 1, 100)
         if ok:
             self.table_view.clearSelection()
@@ -169,7 +184,8 @@ class MainWindow(QMainWindow):
 
     def load_data(self):
         """
-        Загружает данные из hdf файла, подгоняет размер таблицы в модели и заменяет данные в таблице
+        Загружает данные из hdf файла (открывает файл в режиме 'а'), подгоняет размер таблицы в модели и заменяет данные
+        в таблице.
         """
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(self, "Загрузить данные", "", "HDF5 Files (*.h5);;All Files (*)",

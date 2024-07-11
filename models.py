@@ -13,7 +13,7 @@ class CustomTableModel(QAbstractTableModel):
 
     def rowCount(self, parent=QModelIndex()):
         """
-        Возвращает количество строк в таблице
+        Возвращает число строк в таблице
         """
         return self._data.shape[0]
 
