@@ -46,10 +46,6 @@ class MainWindow(QMainWindow):
         self.randomize_button.clicked.connect(self.randomize_values)
         button_layout.addWidget(self.randomize_button)
 
-        self.save_button = QPushButton("Сохранить данные")
-        self.save_button.clicked.connect(self.save_data)
-        button_layout.addWidget(self.save_button)
-
         self.load_button = QPushButton("Загрузить данные")
         self.load_button.clicked.connect(self.load_data)
         button_layout.addWidget(self.load_button)
@@ -105,7 +101,7 @@ class MainWindow(QMainWindow):
             y = self.data[:, y_col]
 
             self.plot_widget.clear()
-            self.plot_widget.plot(x, y, pen='b', symbol='d')  # Рисует график
+            self.plot_widget.plot(x, y, pen=None, symbol='d')  # Рисует график
 
             slope, intercept, r_value, p_value, std_err = linregress(x, y)  # scipy вычисляет линейную регрессию
             fit_x = np.array([min(x), max(x)])
@@ -171,13 +167,6 @@ class MainWindow(QMainWindow):
         self.model.dataChanged.emit(self.model.index(0, 0),
                                     self.model.index(self.row_count() - 1, 3), [Qt.DisplayRole])
 
-    def save_data(self):
-        """
-        Сохраняет данные таблицы в hdf файл
-        """
-        if self.f is not None:
-            self.f.flush()
-
     def load_data(self):
         """
         Загружает данные из hdf файла, подгоняет размер таблицы в модели и заменяет данные в таблице
@@ -190,14 +179,11 @@ class MainWindow(QMainWindow):
             self.file_name = file_name
             self.open_file('a')
             new_data = np.zeros((len(self.columns), 4), dtype=int)
-            new_data[:, 0] = self.columns[:, 0]
-            new_data[:, 3] = self.columns[:, 1]
+            new_data[:, 0] = self.dataset[:, 0]
+            new_data[:, 3] = self.dataset[:, 1]
             self.data = new_data
-            self.fill_data()
-
-    def fill_data(self):
-        self.model.update_data(self.data)
-        self.data[:, 1] = np.cumsum(self.data[:, 0])
-        self.data[:, 2] = self.data[:, 0] + self.data[:, 1] + 3
-        self.model.update_data(self.data)
-        self.update_table(self.model.index(0, 0))
+            self.model.update_data(self.data)
+            self.data[:, 1] = np.cumsum(self.data[:, 0])
+            self.data[:, 2] = self.data[:, 0] + self.data[:, 1] + 3
+            self.model.update_data(self.data)
+            self.update_table(self.model.index(0, 0))
